@@ -30,7 +30,6 @@ function App() {
             isSignedIn : true,
             name : displayName,
             email : email,
-
             photo : photoURL
           }
           setUser(signedInUser);
@@ -50,7 +49,9 @@ function App() {
           isSignedIn : false,
           name: '',
           email: '',
-          photo: ''
+          photo: '',
+          error: '',
+          success: false
         }
     setUser(userSignOut)
       })
@@ -63,7 +64,7 @@ function App() {
 
     const handleBlur = (e) => {
       let isFieldValid = true;
-        console.log(e.target.name , e.target.value);
+        // console.log(e.target.name , e.target.value);
         if(e.target.name === 'email'){
           isFieldValid = /\S+@\S+\.\S+/.test(e.target.value)
           
@@ -81,8 +82,32 @@ function App() {
         }
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = (e) => {
+      console.log(user.email , user.password);
+      if(user.email && user.password){
 
+        firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
+        .then((userCredential) => {
+          var user = userCredential.user;
+          const newUserInfo = {...user}
+          newUserInfo.error = "";
+          newUserInfo.success = true;
+          setUser(newUserInfo)
+          console.log( "this is user : ", user);
+         
+        })
+        .catch((error) => {
+          const newUserInfo = {...user};
+          newUserInfo.error = error.message;
+          newUserInfo.success = false;
+          setUser(newUserInfo)
+          // var errorCode = error.code;
+          // var errorMessage = error.message;
+          // console.log(errorCode , errorMessage);
+        });
+      }
+
+      e.preventDefault();
     }
 
   return (
@@ -110,9 +135,13 @@ function App() {
           <input type="text" name="name" onBlur = {handleBlur} placeholder = "Name"/><br/><br/>
           <input type="email" onBlur = {handleBlur} name = "email" placeholder ="Enter Your Email" required /><br/><br/>
           <input type="password" onBlur = {handleBlur} name = "password" placeholder ="Enter Your Password" required /><br/><br/>
-          <input type="button" value="Submit"/>
+          <input type="button" onClick = {handleSubmit} value="Submit"/>
 
       </form>
+        <p style = {{color: 'red'}} > {user.error }</p>
+        {
+          user.success && <p style = {{color: 'green'}} > User created successfully. </p>
+        }
      </div>
 
     </div>
